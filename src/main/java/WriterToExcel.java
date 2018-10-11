@@ -7,14 +7,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class WriterToExcel {
 
     public void writeIntoExcel() throws IOException{
         File file = createFile();
+        Workbook book = new HSSFWorkbook();
 
-        Workbook book = makeHeader(file);
+        Sheet sheet = makeHeader(book);
+        fillTable(sheet);
+
+        book.write(new FileOutputStream(file));
 
         book.close();
     }
@@ -40,8 +45,7 @@ public class WriterToExcel {
     }
 
 
-    private Workbook makeHeader(File file) throws IOException {
-        Workbook book = new HSSFWorkbook();
+    private Sheet makeHeader(Workbook book) throws IOException {
         Sheet sheet = book.createSheet("Клиенты");
 
         // Нумерация начинается с нуля
@@ -87,8 +91,63 @@ public class WriterToExcel {
         // Меняем размер столбца
 //        sheet.autoSizeColumn(1);
         // Записываем всё в файл
-        book.write(new FileOutputStream(file));
 
-        return book;
+
+        return sheet;
+    }
+
+    private Sheet fillTable(Sheet sheet) throws IOException {
+        int rownum = (int) (Math.random() * 1000) % 30 + 1;
+
+        for (int r = 1; r <= rownum; r++){
+
+            Row row = sheet.createRow(r);
+            List<Cell> names = new ArrayList<Cell>();
+
+            FIOGenerator fioGenerator = new FIOGenerator();
+            AdressGenerator adressGenerator = new AdressGenerator();
+            InnGenerator innGenerator = new InnGenerator();
+            int index = (int) (Math.random() * 1000000);
+            DateGenerator dateGenerator = new DateGenerator();
+            GregorianCalendar birthday = dateGenerator.getRandomBirthday();
+
+            int sex = (int) (Math.random() * 100) % 2;
+            String Sex = "Мужской";
+            String Name = fioGenerator.getManName();
+            String Surname = fioGenerator.getSurname();
+            String Patronymic = fioGenerator.getPatronymic() + "ич";
+            if (sex == 1) {
+                Sex = "Женский";
+                Name = fioGenerator.getFemaleName();
+                Surname += "а";
+                Patronymic += fioGenerator.getPatronymic() + "на";
+            }
+
+            String[] elements = {
+                    Name,
+                    Surname,
+                    Patronymic,
+                    String.valueOf(dateGenerator.getAge(birthday)),
+                    Sex,
+                    birthday.getTime().getDate() + ":" + birthday.getTime().getMonth() + ":" + (birthday.getTime().getYear()+1900),
+                    innGenerator.generate(),
+                    String.valueOf(index),
+                    adressGenerator.getCountry(),
+                    adressGenerator.getRegion(),
+                    adressGenerator.getCity(),
+                    adressGenerator.getStreet(),
+                    String.valueOf((int) (Math.random() * 100)),
+                    String.valueOf((int) (Math.random() * 100))
+            };
+
+            int i = 0;
+            for (String element : elements) {
+                names.add(row.createCell(i));
+                names.get(i).setCellValue(element);
+                i++;
+            }
+        }
+
+        return sheet;
     }
 }

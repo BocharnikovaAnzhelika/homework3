@@ -1,5 +1,5 @@
 public class InnGenerator {
-    public static String generate() {
+    public String generate() {
         String inn = "77";
 
         int codeOrg = (int) (Math.random() * 100);
